@@ -20,13 +20,39 @@ const App: React.FC = () => {
         principal: 50000000,
         interestRate: 10,
         tenureMonths: 24,
-        status: LoanStatus.PENDING,
+        status: LoanStatus.ACTIVE,
         appliedDate: '2023-12-01',
+        approvedDate: '2023-12-05',
         monthlyInstallment: 2500000,
-        remainingBalance: 50000000
+        remainingBalance: 45000000
       }
     ],
-    savingsTransactions: [],
+    savingsTransactions: [
+      {
+        id: 'TRX001',
+        memberId: 'MEM001',
+        type: TransactionType.DEPOSIT,
+        amount: 1000000,
+        date: '2023-11-15',
+        description: 'Setoran Awal'
+      },
+      {
+        id: 'TRX002',
+        memberId: 'MEM001',
+        type: TransactionType.DEPOSIT,
+        amount: 500000,
+        date: '2023-12-01',
+        description: 'Simpanan Sukarela'
+      },
+      {
+        id: 'TRX003',
+        memberId: 'MEM002',
+        type: TransactionType.DEPOSIT,
+        amount: 12500000,
+        date: '2023-10-20',
+        description: 'Simpanan Pokok & Wajib'
+      }
+    ],
     coa: INITIAL_COA,
     journal: []
   });
@@ -56,7 +82,6 @@ const App: React.FC = () => {
     }));
   };
 
-  // Fixed: Removed duplicate 'status' property in the object literal
   const updateLoanStatus = (loanId: string, status: LoanStatus) => {
     setState(prev => ({
       ...prev,
@@ -64,7 +89,7 @@ const App: React.FC = () => {
         l.id === loanId ? { 
           ...l, 
           approvedDate: status === LoanStatus.APPROVED ? new Date().toISOString().split('T')[0] : l.approvedDate,
-          status: status === LoanStatus.APPROVED ? LoanStatus.ACTIVE : status // auto active for demo
+          status: status === LoanStatus.APPROVED ? LoanStatus.ACTIVE : status
         } : l
       )
     }));
@@ -140,7 +165,6 @@ const App: React.FC = () => {
         default: return <AdminDashboard state={state} />;
       }
     } else {
-      // Member Module Views
       return (
         <div className="space-y-6">
           <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-8 rounded-3xl text-white shadow-lg">
