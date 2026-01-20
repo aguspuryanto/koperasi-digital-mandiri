@@ -48,7 +48,8 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ state, addMember })
       ...newMember as Member,
       id: `MEM${String(state.members.length + 1).padStart(3, '0')}`,
       joinedDate: new Date().toISOString().split('T')[0],
-      balance: 0
+      balance: 0,
+      status: 'active'
     };
     addMember(member);
     setShowAddModal(false);
@@ -61,6 +62,17 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ state, addMember })
 
   const getMemberLoans = (memberId: string) => {
     return state.loans.filter(l => l.memberId === memberId);
+  };
+
+  // Helper to calculate total accumulated deposits and frequency
+  const getMemberDepositStats = (memberId: string) => {
+    const deposits = state.savingsTransactions
+      .filter(t => t.memberId === memberId && t.type === TransactionType.DEPOSIT);
+    
+    return {
+      totalAmount: deposits.reduce((sum, t) => sum + t.amount, 0),
+      count: deposits.length
+    };
   };
 
   return (
@@ -107,67 +119,77 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ state, addMember })
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Kontak</th>
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Bergabung</th>
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Saldo Simpanan</th>
+                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Akumulasi Simpanan</th>
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredMembers.map((member) => (
-                <tr key={member.id} className="hover:bg-slate-50/50 transition-colors group">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm">
-                        {member.name.charAt(0)}
+              {filteredMembers.map((member) => {
+                const stats = getMemberDepositStats(member.id);
+                return (
+                  <tr key={member.id} className="hover:bg-slate-50/50 transition-colors group">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm">
+                          {member.name.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-800">{member.name}</p>
+                          <p className="text-xs text-slate-500">ID: {member.id}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-bold text-slate-800">{member.name}</p>
-                        <p className="text-xs text-slate-500">ID: {member.id}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-xs text-slate-500">
+                          <Mail size={12} /> {member.email}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-slate-500">
+                          <Phone size={12} /> {member.phone}
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-xs text-slate-500">
-                        <Mail size={12} /> {member.email}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2 text-sm text-slate-600">
+                        <Calendar size={14} />
+                        {member.joinedDate}
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-slate-500">
-                        <Phone size={12} /> {member.phone}
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="font-bold text-slate-800">Rp {member.balance.toLocaleString()}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold text-slate-700">Rp {stats.totalAmount.toLocaleString()}</span>
+                        <span className="text-[10px] text-slate-400 uppercase font-medium">{stats.count} Transaksi</span>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <Calendar size={14} />
-                      {member.joinedDate}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="font-bold text-slate-800">Rp {member.balance.toLocaleString()}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      member.status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
-                    }`}>
-                      {member.status === 'active' ? 'Aktif' : 'Nonaktif'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button 
-                        onClick={() => setSelectedMember(member)}
-                        className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg flex items-center gap-1 text-xs font-bold"
-                        title="Lihat Detail Transaksi"
-                      >
-                        <Eye size={16} />
-                        Detail
-                      </button>
-                      <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg">
-                        <MoreVertical size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        member.status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
+                      }`}>
+                        {member.status === 'active' ? 'Aktif' : 'Nonaktif'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => setSelectedMember(member)}
+                          className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg flex items-center gap-1 text-xs font-bold"
+                          title="Lihat Detail Transaksi"
+                        >
+                          <Eye size={16} />
+                          Detail
+                        </button>
+                        <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg">
+                          <MoreVertical size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
