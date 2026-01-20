@@ -1,0 +1,7 @@
+{
+  "name": "Koperasi Digital Mandiri",
+  "description": "A comprehensive Savings and Loan Cooperative management system featuring Admin and Member modules with real-time financial tracking and AI-powered insights.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
